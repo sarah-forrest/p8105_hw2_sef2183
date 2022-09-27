@@ -1,0 +1,160 @@
+---
+title: "p8105_hw2_sef2183"
+author: "Sarah Forrest"
+date: "2022-09-27"
+output: github_document
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+```
+
+```{r load packages, echo = FALSE}
+library(tidyverse)
+```
+
+# Problem 1
+## Read and Clean the Data
+```{r problem 1 - read and manipulate data}
+subway_df = 
+  read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
+  janitor::clean_names() %>%
+  select(line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada) %>%
+  mutate(entry = recode(entry, "YES" = TRUE,  "NO" = FALSE))
+
+subway_df
+
+is.logical(subway_df$entry)
+```
+
+## Dataset Description: 
+This dataset contains the variables: line, station_name, station_latitude, station_longitude, routes served (route1-route11), entry, vending, entrance_type, and ada (ADA compliance). 
+
+So far, I imported the CSV file with the data using the `read_csv` function and a relative path to the data file. Then, I used the pipe operator to feed the data frame into the `janitor` package's `clean_names` function to  convert all variable names to lower case and put underscores in the gaps Then, I used the pipe operator again to feed the output of the `clean_names` function to the `select` function to retain only the variables of interest in the data frame. Then, I used the pipe operator again to feed the output of the `select` function into the `recode` function within `mutate` to convert the entry variable from character (`YES` vs `NO`) to a logical variable. Finally, the outcome of all of these processes are stored in the tibble `subway_df`. I printed out the data set to check the variables that were included in it and also checked that the entry variable was logical using the `is.logical` function which returned "TRUE".
+
+The dimensions of the resulting `subway_df` tibble is 1,868 rows (observations) by 19 columns (variables).
+
+These data are not tidy. Variables route1-route11 span 11 columns in the dataset. In order to be tidy, there should just be 1 column for the variable "route_number" with values for each route number and another column, "route_name" for the name of the corresponding subway.
+
+## Dataset Questions:
+```{r}
+distinct_stations_df = distinct(subway_df, station_name, line, .keep_all = TRUE)
+
+nrow(distinct_stations_df)
+```
+
+* There are 465 distinct stations.
+
+```{r}
+sum(distinct_stations_df$ada == "TRUE")
+```
+
+* 84 distinct stations are ADA compliant. 
+
+```{r}
+denom_df = filter(distinct_stations_df, vending == "NO")
+
+denom = sum(distinct_stations_df$vending == "NO")
+num = sum(denom_df$entry == "TRUE")
+
+num / denom
+```
+
+* 5/9 station entrances / exits without vending allow entrance
+
+```{r problem 1 - reformat data}
+summary(subway_df)
+
+subway_df$route8 <- as.character(subway_df$route8)
+subway_df$route9 <- as.character(subway_df$route9)
+subway_df$route10 <- as.character(subway_df$route10)
+subway_df$route11 <- as.character(subway_df$route11)
+
+summary(subway_df)
+
+subway_long_df =
+  subway_df %>%
+  pivot_longer(
+    route1:route11,
+    names_to = "route_number",
+    names_prefix = "route",
+    values_to = "route_name")
+  
+subway_long_df
+```
+
+```{r}
+distinct_stations_long_df = distinct(subway_long_df, station_name, line, .keep_all = TRUE)
+
+sum(distinct_stations_long_df$route_name == "A")
+```
+
+60 distinct stations serve the A train. 
+
+```{r}
+a_df = filter(distinct_stations_long_df, route_name == "A") 
+sum(a_df$ada == "TRUE")
+```
+
+17 of the stations that serve the A train are ADA compliant.
+
+# Problem 2
+```{r problem 2 - read and manipulate data}
+Mr_Trash_Wheel_df =
+  read_excel = ("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx") %>%
+  janitor::clean_names() %>%
+```
+
+specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel
+use reasonable variable names
+omit rows that do not include dumpster-specific data
+round the number of sports balls to the nearest integer and converts the result to an integer variable (using as.integer)
+Use a similar process to import, clean, and organize the data for Professor Trash Wheel, and combine this with the Mr. Trash Wheel dataset to produce a single tidy dataset. To keep track of which Trash Wheel is which, you may need to add an additional variable to both datasets before combining.
+
+## Dataset Description: 
+You are encouraged to use inline R. 
+The number of observations in the resulting dataset is ___.
+Examples of key variables in the dataset include: _____. 
+For available data, the total weight of trash collected by Professor Trash Wheel is ____.
+The total number of sports balls collected by Mr. Trash Wheel in 2020 was ___.
+
+# Problem 3
+
+```{r problem 3 - read and manipulate data}
+pols_month_df = 
+  read_csv("data/fivethirtyeight_datasets/pols-month.csv") %>%
+  janitor::clean_names() %>%
+  separate()
+
+snp_df = 
+  read_csv("data/fivethirtyeight_datasets/snp.csv") %>%
+  janitor::clean_names() %>%
+  separate()
+
+unemployment_df = 
+  read_csv("data/fivethirtyeight_datasets/unemployment.csv")
+```
+
+Use separate() to break up the variable mon into integer variables year, month, and day; replace month number with month name; create a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
+
+Second, clean the data in snp.csv using a similar process to the above. For consistency across datasets, arrange according to year and month, and organize so that year and month are the leading columns.
+
+Third, tidy the unemployment data so that it can be merged with the previous datasets. This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
+
+Join the datasets by merging snp into pols, and merging unemployment into the result.
+
+## Dataset Descriptions: 
+The pols-month dataset contained:
+
+The snp dataset contained:
+
+The unemployment dataset contained: 
+
+The resulting dataset contains (dimension, range of years, names of key variables):
+
+
