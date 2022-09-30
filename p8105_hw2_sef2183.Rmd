@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r load packages, echo = FALSE}
 library(tidyverse)
+library(readxl)
 ```
 
 # Problem 1
@@ -104,42 +105,69 @@ sum(a_df$ada == "TRUE")
 17 of the stations that serve the A train are ADA compliant.
 
 # Problem 2
-```{r problem 2 - read and manipulate data}
-Mr_Trash_Wheel_df =
-  read_excel = ("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx") %>%
+```{r problem 2 - read and manipulate mr trash wheel data}
+mrtrashwheel_df =
+  read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N534") %>%
   janitor::clean_names() %>%
+  drop_na(dumpster)
 ```
 
-specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel
-use reasonable variable names
-omit rows that do not include dumpster-specific data
-round the number of sports balls to the nearest integer and converts the result to an integer variable (using as.integer)
-Use a similar process to import, clean, and organize the data for Professor Trash Wheel, and combine this with the Mr. Trash Wheel dataset to produce a single tidy dataset. To keep track of which Trash Wheel is which, you may need to add an additional variable to both datasets before combining.
+```{r problem 2 - manipulate mr trash wheel sports balls data}
+mrtrashwheel_df$sports_balls = round(mrtrashwheel_df$sports_balls, digits = 0)
+mrtrashwheel_df$sports_balls = as.integer(mrtrashwheel_df$sports_balls)
+
+class(mrtrashwheel_df$sports_balls)
+```
+
+```{r problem 2 - read and manipulate professor trash wheel data}
+professortrashwheel_df =
+  read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = "A2:N116") %>%
+  janitor::clean_names() %>%
+  drop_na(dumpster)
+```
+
+```{r problem 2 - combine trash wheel datasets}
+mrtrashwheel_df$dataset = "Mr. Trash Wheel"
+professortrashwheel_df$dataset = "Professor Trash Wheel"
+
+trashwheel_df = full_join(mrtrashwheel_df, professortrashwheel_df)
+
+trashwheel_df
+```
 
 ## Dataset Description: 
-You are encouraged to use inline R. 
-The number of observations in the resulting dataset is ___.
-Examples of key variables in the dataset include: _____. 
-For available data, the total weight of trash collected by Professor Trash Wheel is ____.
-The total number of sports balls collected by Mr. Trash Wheel in 2020 was ___.
+ 
+* The number of observations in the resulting dataset is `r nrow(trashwheel_df)`.
+
+* Examples of key variables in the dataset include: Dumpster, Month, Year, Date, Weight (tons), Volume (cubic yards), Plastic Bottles, Polystyrene, Cigarette Butts, Glass Bottles, Grocery Bags, Chip Bags, Sports Balls, and Homes Powered. 
+
+* For available data, the total weight of trash collected by Professor Trash Wheel is `r sum(professortrashwheel_df$weight_tons)`
+
+```{r problem 2 - 2020 mr trach wheel dataset creation}
+mrtrashwheel_2020_df =
+  filter(mrtrashwheel_df, year == 2020)
+```
+
+* The total number of sports balls collected by Mr. Trash Wheel in 2020 was `r sum(mrtrashwheel_2020_df$sports_balls)`.
 
 # Problem 3
 
 ```{r problem 3 - read and manipulate data}
 pols_month_df = 
   read_csv("data/fivethirtyeight_datasets/pols-month.csv") %>%
-  janitor::clean_names() %>%
-  separate()
+  janitor::clean_names()
+
 
 snp_df = 
   read_csv("data/fivethirtyeight_datasets/snp.csv") %>%
-  janitor::clean_names() %>%
-  separate()
+  janitor::clean_names()
+
 
 unemployment_df = 
   read_csv("data/fivethirtyeight_datasets/unemployment.csv")
 ```
-
+separate()
+  
 Use separate() to break up the variable mon into integer variables year, month, and day; replace month number with month name; create a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
 
 Second, clean the data in snp.csv using a similar process to the above. For consistency across datasets, arrange according to year and month, and organize so that year and month are the leading columns.
@@ -149,12 +177,10 @@ Third, tidy the unemployment data so that it can be merged with the previous dat
 Join the datasets by merging snp into pols, and merging unemployment into the result.
 
 ## Dataset Descriptions: 
-The pols-month dataset contained:
+The pols month dataset contained:
 
 The snp dataset contained:
 
 The unemployment dataset contained: 
 
 The resulting dataset contains (dimension, range of years, names of key variables):
-
-
