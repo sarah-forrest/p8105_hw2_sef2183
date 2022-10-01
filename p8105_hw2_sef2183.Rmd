@@ -109,12 +109,10 @@ sum(a_df$ada == "TRUE")
 mrtrashwheel_df =
   read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N534") %>%
   janitor::clean_names() %>%
-  drop_na(dumpster)
-```
-
-```{r problem 2 - manipulate mr trash wheel sports balls data}
-mrtrashwheel_df$sports_balls = round(mrtrashwheel_df$sports_balls, digits = 0)
-mrtrashwheel_df$sports_balls = as.integer(mrtrashwheel_df$sports_balls)
+  drop_na(dumpster) %>%
+  mutate(dataset = "Mr. Trash Wheel") %>%
+  mutate(sports_balls = round(sports_balls, digits = 0)) %>%
+  mutate(sports_balls = as.integer(sports_balls))
 
 class(mrtrashwheel_df$sports_balls)
 ```
@@ -123,14 +121,13 @@ class(mrtrashwheel_df$sports_balls)
 professortrashwheel_df =
   read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = "A2:N116") %>%
   janitor::clean_names() %>%
-  drop_na(dumpster)
+  drop_na(dumpster) %>%
+  mutate(dataset = "Professor Trash Wheel")
+
 ```
 
 ```{r problem 2 - combine trash wheel datasets}
-mrtrashwheel_df$dataset = "Mr. Trash Wheel"
-professortrashwheel_df$dataset = "Professor Trash Wheel"
-
-trashwheel_df = full_join(mrtrashwheel_df, professortrashwheel_df)
+trashwheel_df = full_join(mrtrashwheel_df, professortrashwheel_df) # CORRECT TYPE OF JOIN?
 
 trashwheel_df
 ```
@@ -155,32 +152,50 @@ mrtrashwheel_2020_df =
 ```{r problem 3 - read and manipulate data}
 pols_month_df = 
   read_csv("data/fivethirtyeight_datasets/pols-month.csv") %>%
-  janitor::clean_names()
+  janitor::clean_names() %>%
+  separate(mon, into = c("year", "month", "day"), sep = '-') %>%
+  mutate(
+    month = recode(month, "01" = 'January', "02" = 'February', "03" = 'March', "04" = 'April', "05" = 'May', "06" = 'June', "07" = 'July', "08" = 'August', "09" = 'September', "10" = 'October', "11" = 'November', "12" = 'December')) %>%
+  mutate(
+    president = case_when(prez_gop == 1 ~ "gop",
+                          prez_gop != 1 ~ "dem")) %>%
+  select(-prez_gop, -prez_dem, -day) %>%
+  mutate(year = as.numeric(year))
 
 
 snp_df = 
   read_csv("data/fivethirtyeight_datasets/snp.csv") %>%
-  janitor::clean_names()
+  janitor::clean_names() %>%
+  separate(date, into = c("month", "day", "year"), sep = '/') %>%
+  mutate(
+    month = recode(month, "1" = 'January', "2" = 'February', "3" = 'March', "4" = 'April', "5" = 'May', "6" = 'June', "7" = 'July', "8" = 'August', "9" = 'September', "10" = 'October', "11" = 'November', "12" = 'December')) %>%
+  mutate(year = paste0("20", year)) %>%
+  arrange(year, month) %>%
+  relocate(year, month) %>%
+  select(-day) %>% # NEED TO DROP DAY?
+  mutate(year = as.numeric(year))
 
 
 unemployment_df = 
-  read_csv("data/fivethirtyeight_datasets/unemployment.csv")
+  read_csv("data/fivethirtyeight_datasets/unemployment.csv") %>%
+  janitor::clean_names() %>%
+  pivot_longer(jan:dec,
+    names_to = "month", 
+    values_to = "unemployment") %>% # IS UNEMPLOYMENT THE RIGHT NAME?
+  mutate(
+    month = recode(month, "jan" = 'January', "feb" = 'February', "mar" = 'March', "apr" = 'April', "may" = 'May', "jun" = 'June', "jul" = 'July', "aug" = 'August', "sep" = 'September', "oct" = 'October', "nov" = 'November', "dec" = 'December'))
 ```
-separate()
-  
-Use separate() to break up the variable mon into integer variables year, month, and day; replace month number with month name; create a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
 
-Second, clean the data in snp.csv using a similar process to the above. For consistency across datasets, arrange according to year and month, and organize so that year and month are the leading columns.
+```{r problem 3 - merge datsets}
+merged_df = 
+  left_join(pols_month_df, snp_df) %>% # CORRCT JOIN?
+  left_join(., unemployment_df) # CORRCT JOIN?
 
-Third, tidy the unemployment data so that it can be merged with the previous datasets. This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
-
-Join the datasets by merging snp into pols, and merging unemployment into the result.
+merged_df
+```
 
 ## Dataset Descriptions: 
-The pols month dataset contained:
+The pols month dataset contained the variables: year, month, gov_gop, sen_gop, rep_gop, gov_dem, sen_dem, rep_dem, and president. The snp dataset contained the variables: year, month, and close. The unemployment dataset contained the variables: year, month, and unemployment.
 
-The snp dataset contained:
-
-The unemployment dataset contained: 
-
-The resulting dataset contains (dimension, range of years, names of key variables):
+The resulting merged dataset contains `r nrow(merged_df)` rows/observations and `r ncol(merged_df)` columns/variables. The range of years in the dataset is: 
+`r range(merged_df$year, na.rm = FALSE)`. It contains the variables: year, month, gov_gop, sen_gop, rep_gop, gov_dem, sen_dem, rep_dem, president, close, and unemployment.
