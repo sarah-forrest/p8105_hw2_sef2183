@@ -77,7 +77,7 @@ trans_ent %>%
 Answer: 84 distinct stations are ADA compliant. 
 
 
-To compute the proportion of station entrances / exits without vending allow entrance, we first exclude station entrances that do not allow vending and then take the mean of the entry variable, which is logical, to produce the desired proportion:
+To compute the proportion of station entrances / exits without vending allow entrance, station entrances that do not allow vending are excluded and then the mean of the entry variable is taken (which is logical), to produce the desired proportion:
 ```{r}
 trans_ent %>% 
   filter(vending == "NO") %>% 
@@ -141,25 +141,29 @@ Answer: 17 of the stations that serve the A train are ADA compliant.
 
 
 # Problem 2
+Below the Mr. Trash Wheel data from `Trash-Wheel-Collection-Totals-7-2020-2.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N534 (omitting the figure at the top of the sheet). Then, variable names are cleaned using `clean_names()` and summary rows that do not include dumpster-specific data are dropped from the dataset. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps. As part of the data import, `sports_balls` is also rounded to the nearest integer and converted to an integer variable using `as.integer()`:
 ```{r problem 2 - read and manipulate mr trash wheel data}
 mrtrashwheel_df =
   read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N534") %>%
   janitor::clean_names() %>%
   drop_na(dumpster) %>%
-  mutate(dataset = "Mr. Trash Wheel") %>%
+  mutate(dataset = "mr") %>%
   mutate(sports_balls = round(sports_balls, digits = 0)) %>%
   mutate(sports_balls = as.integer(sports_balls))
+```
 
+The following code is written to ensure that `sports_balls` was successsfully converted to an integer variable using `as.integer()`:
+```{r problem 2 - check class of variable}
 class(mrtrashwheel_df$sports_balls)
 ```
 
+Below the Professor Trash Wheel data from `Trash-Wheel-Collection-Totals-7-2020-2.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N116 (omitting the figure at the top of the sheet). Then, variable names are cleaned using `clean_names()` and summary rows that do not include dumpster-specific data are dropped from the dataset. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps: 
 ```{r problem 2 - read and manipulate professor trash wheel data}
 professortrashwheel_df =
   read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = "A2:N116") %>%
   janitor::clean_names() %>%
   drop_na(dumpster) %>%
-  mutate(dataset = "Professor Trash Wheel")
-
+  mutate(dataset = "prof")
 ```
 
 ```{r problem 2 - combine trash wheel datasets}
@@ -169,19 +173,38 @@ trashwheel_df
 ```
 
 ## Dataset Description: 
- 
 * The number of observations in the resulting dataset is `r nrow(trashwheel_df)`.
 
 * Examples of key variables in the dataset include: Dumpster, Month, Year, Date, Weight (tons), Volume (cubic yards), Plastic Bottles, Polystyrene, Cigarette Butts, Glass Bottles, Grocery Bags, Chip Bags, Sports Balls, and Homes Powered. 
 
-* For available data, the total weight of trash collected by Professor Trash Wheel is `r sum(professortrashwheel_df$weight_tons)`
+* Using inline R to take the sum of `weight_tons` from `professortrashwheel_df`, the total weight of trash collected by Professor Trash Wheel is `r sum(professortrashwheel_df$weight_tons)` tons. This can be double checked another way by running the following code, which filters only the trash collected by Professor Trash Wheel from the combined dataset, and then calculates the sum of `weight_tons`:
+```{r probelm 2 - professor trash wheel sum weight tons}
+trashwheel_df %>% 
+  filter(dataset == "prof") %>%
+  pull(weight_tons) %>% 
+  sum
+```
+Answer: the total weight of trash collected by Professor Trash Wheel is 135.5 tons.
 
+
+* To calculate the total number of sports balls collected by Mr. Trash Wheel in 2020, the following code filters only the trash collected by Mr. Trash Wheel from the combined dataset in 2020, and then calculates the sum of `sports_balls`:
+```{r problem 2 - 2020 mr trach wheel sum sports balls}
+trashwheel_df %>% 
+  filter(dataset == "mr") %>%
+  filter(year == "2020") %>%
+  pull(sports_balls) %>% 
+  sum
+```
+Answer: the total number of sports balls collected by Mr. Trash Wheel in 2020 was 856.
+
+Inline R can also be used to report the answer to this question by running the following code:
 ```{r problem 2 - 2020 mr trach wheel dataset creation}
 mrtrashwheel_2020_df =
   filter(mrtrashwheel_df, year == 2020)
 ```
+Answer: the total number of sports balls collected by Mr. Trash Wheel in 2020 was `r sum(mrtrashwheel_2020_df$sports_balls)`.
 
-* The total number of sports balls collected by Mr. Trash Wheel in 2020 was `r sum(mrtrashwheel_2020_df$sports_balls)`.
+
 
 # Problem 3
 
