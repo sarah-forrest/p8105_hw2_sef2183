@@ -5,16 +5,13 @@ date: "2022-09-27"
 output: github_document
 ---
 
-```{r, echo = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  fig.width = 6,
-  fig.asp = .6,
-  out.width = "90%"
-)
+# Problem 0
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, message = FALSE)
 ```
 
-```{r load packages, echo = FALSE}
+```{r load packages}
 library(tidyverse)
 library(readxl)
 ```
@@ -22,15 +19,24 @@ library(readxl)
 # Problem 1
 ## Read and Clean the Data
 ```{r problem 1 - read and manipulate data}
+# My method
 subway_df = 
   read_csv("data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
   janitor::clean_names() %>%
   select(line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada) %>%
   mutate(entry = recode(entry, "YES" = TRUE,  "NO" = FALSE))
 
-subway_df
-
-is.logical(subway_df$entry)
+# Jeff's method
+trans_ent = 
+  read_csv(
+    "data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+    col_types = cols(Route8 = "c", Route9 = "c", Route10 = "c", Route11 = "c")) %>% 
+  janitor::clean_names() %>% 
+  select(
+    line, station_name, station_latitude, station_longitude, 
+    starts_with("route"), entry, exit_only, vending, entrance_type, 
+    ada) %>% 
+  mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
 ```
 
 ## Dataset Description: 
@@ -43,40 +49,51 @@ The dimensions of the resulting `subway_df` tibble is 1,868 rows (observations) 
 These data are not tidy. Variables route1-route11 span 11 columns in the dataset. In order to be tidy, there should just be 1 column for the variable "route_number" with values for each route number and another column, "route_name" for the name of the corresponding subway.
 
 ## Dataset Questions:
+This produces a dataframe in which the the number of rows in this dataset is the number of unique stations:
 ```{r}
+# My method
 distinct_stations_df = distinct(subway_df, station_name, line, .keep_all = TRUE)
-
 nrow(distinct_stations_df)
+
+# Jeff's method
+trans_ent %>% 
+  select(station_name, line) %>% 
+  distinct
 ```
+Answer: there are 465 distinct stations.
 
-* There are 465 distinct stations.
 
+This produces a dataframe in which the number of rows is the number of ADA compliant stations:
 ```{r}
+# My method
 sum(distinct_stations_df$ada == "TRUE")
+
+# Jeff's method
+trans_ent %>% 
+  filter(ada == TRUE) %>% 
+  select(station_name, line) %>% 
+  distinct
 ```
+Answer: 84 distinct stations are ADA compliant. 
 
-* 84 distinct stations are ADA compliant. 
 
+To compute the proportion of station entrances / exits without vending allow entrance, we first exclude station entrances that do not allow vending and then take the mean of the entry variable, which is logical, to produce the desired proportion:
 ```{r}
-denom_df = filter(distinct_stations_df, vending == "NO")
-
-denom = sum(distinct_stations_df$vending == "NO")
-num = sum(denom_df$entry == "TRUE")
-
-num / denom
+trans_ent %>% 
+  filter(vending == "NO") %>% 
+  pull(entry) %>% 
+  mean
 ```
+Answer: 0.3770492 station entrances / exits without vending allow entrance.
 
-* 5/9 station entrances / exits without vending allow entrance
 
+This produces a dataframe in which the number of rows is the number of distinct stations that serve the A train:
 ```{r problem 1 - reformat data}
-summary(subway_df)
-
+# My method
 subway_df$route8 <- as.character(subway_df$route8)
 subway_df$route9 <- as.character(subway_df$route9)
 subway_df$route10 <- as.character(subway_df$route10)
 subway_df$route11 <- as.character(subway_df$route11)
-
-summary(subway_df)
 
 subway_long_df =
   subway_df %>%
@@ -85,24 +102,43 @@ subway_long_df =
     names_to = "route_number",
     names_prefix = "route",
     values_to = "route_name")
-  
-subway_long_df
-```
 
-```{r}
 distinct_stations_long_df = distinct(subway_long_df, station_name, line, .keep_all = TRUE)
 
 sum(distinct_stations_long_df$route_name == "A")
+
+# Jeff's method: 
+trans_ent %>% 
+  pivot_longer(
+    route1:route11,
+    names_to = "route_num",
+    values_to = "route") %>% 
+  filter(route == "A") %>% 
+  select(station_name, line) %>% 
+  distinct
 ```
+Answer: 60 distinct stations serve the A train. 
 
-60 distinct stations serve the A train. 
 
+This produces a dataframe in which the number of rows is the number of distinct stations that serve the A train and are ADA compliant:
 ```{r}
+# My method
 a_df = filter(distinct_stations_long_df, route_name == "A") 
 sum(a_df$ada == "TRUE")
-```
 
-17 of the stations that serve the A train are ADA compliant.
+# Jeff's method
+trans_ent %>% 
+  pivot_longer(
+    route1:route11,
+    names_to = "route_num",
+    values_to = "route") %>% 
+  filter(route == "A", ada == TRUE) %>% 
+  select(station_name, line) %>% 
+  distinct
+```
+Answer: 17 of the stations that serve the A train are ADA compliant.
+
+
 
 # Problem 2
 ```{r problem 2 - read and manipulate mr trash wheel data}
