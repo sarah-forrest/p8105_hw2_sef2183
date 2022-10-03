@@ -40,13 +40,13 @@ trans_ent =
 ```
 
 ## Dataset Description: 
-This dataset contains the variables: line, station_name, station_latitude, station_longitude, routes served (route1-route11), entry, vending, entrance_type, and ada (ADA compliance). 
+This dataset contains the variables: `line`, `station_name`, `station_latitude`, `station_longitude`, routes served (route1-route11), `entry`, `vending`, `entrance_type`, and `ada` (ADA compliance). 
 
 So far, I imported the CSV file with the data using the `read_csv` function and a relative path to the data file. Then, I used the pipe operator to feed the data frame into the `janitor` package's `clean_names` function to  convert all variable names to lower case and put underscores in the gaps Then, I used the pipe operator again to feed the output of the `clean_names` function to the `select` function to retain only the variables of interest in the data frame. Then, I used the pipe operator again to feed the output of the `select` function into the `recode` function within `mutate` to convert the entry variable from character (`YES` vs `NO`) to a logical variable. Finally, the outcome of all of these processes are stored in the tibble `subway_df`. I printed out the data set to check the variables that were included in it and also checked that the entry variable was logical using the `is.logical` function which returned "TRUE".
 
 The dimensions of the resulting `subway_df` tibble is 1,868 rows (observations) by 19 columns (variables).
 
-These data are not tidy. Variables route1-route11 span 11 columns in the dataset. In order to be tidy, there should just be 1 column for the variable "route_number" with values for each route number and another column, "route_name" for the name of the corresponding subway.
+These data are not tidy. Variables `route1`-`route11` span 11 columns in the dataset. In order to be tidy, there should just be 1 column for the variable `route_number` with values for each route number and another column, `route_name` for the name of the corresponding subway.
 
 ## Dataset Questions:
 This produces a dataframe in which the the number of rows in this dataset is the number of unique stations:
@@ -141,7 +141,8 @@ Answer: 17 of the stations that serve the A train are ADA compliant.
 
 
 # Problem 2
-Below the Mr. Trash Wheel data from `Trash-Wheel-Collection-Totals-7-2020-2.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N534 (omitting the figure at the top of the sheet). Then, variable names are cleaned using `clean_names()` and summary rows that do not include dumpster-specific data are dropped from the dataset. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps. As part of the data import, `sports_balls` is also rounded to the nearest integer and converted to an integer variable using `as.integer()`:
+
+Below, the Mr. Trash Wheel data from `Trash-Wheel-Collection-Totals-7-2020-2.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N534 (omitting the figure at the top of the sheet). Then, variable names are cleaned using `clean_names()` and summary rows that do not include dumpster-specific data are dropped from the dataset. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps. As part of the data import, `sports_balls` is also rounded to the nearest integer and converted to an integer variable using `as.integer()`:
 ```{r problem 2 - read and manipulate mr trash wheel data}
 mrtrashwheel_df =
   read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N534") %>%
@@ -157,7 +158,7 @@ The following code is written to ensure that `sports_balls` was successsfully co
 class(mrtrashwheel_df$sports_balls)
 ```
 
-Below the Professor Trash Wheel data from `Trash-Wheel-Collection-Totals-7-2020-2.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N116 (omitting the figure at the top of the sheet). Then, variable names are cleaned using `clean_names()` and summary rows that do not include dumpster-specific data are dropped from the dataset. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps: 
+Below, the Professor Trash Wheel data from `Trash-Wheel-Collection-Totals-7-2020-2.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N116 (omitting the figure at the top of the sheet). Then, variable names are cleaned using `clean_names()` and summary rows that do not include dumpster-specific data are dropped from the dataset. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps: 
 ```{r problem 2 - read and manipulate professor trash wheel data}
 professortrashwheel_df =
   read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = "A2:N116") %>%
@@ -175,7 +176,7 @@ trashwheel_df
 ## Dataset Description: 
 * The number of observations in the resulting dataset is `r nrow(trashwheel_df)`.
 
-* Examples of key variables in the dataset include: Dumpster, Month, Year, Date, Weight (tons), Volume (cubic yards), Plastic Bottles, Polystyrene, Cigarette Butts, Glass Bottles, Grocery Bags, Chip Bags, Sports Balls, and Homes Powered. 
+* Examples of key variables in the dataset include: `dumpster`, `month`, `year`, `date`, `Weight (tons)`, `weight_tons`, `volume_cubic yards`, `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`, `grocery_bags`, `chip_bags`, `sports_balls`, and `homes_powered`. 
 
 * Using inline R to take the sum of `weight_tons` from `professortrashwheel_df`, the total weight of trash collected by Professor Trash Wheel is `r sum(professortrashwheel_df$weight_tons)` tons. This can be double checked another way by running the following code, which filters only the trash collected by Professor Trash Wheel from the combined dataset, and then calculates the sum of `weight_tons`:
 ```{r probelm 2 - professor trash wheel sum weight tons}
@@ -208,7 +209,8 @@ Answer: the total number of sports balls collected by Mr. Trash Wheel in 2020 wa
 
 # Problem 3
 
-```{r problem 3 - read and manipulate data}
+Below, the data from `fivethirtyeight_datasets/pols-month.csv` is imported and cleaned. The process begins with cleaning variable names using `clean_names()` and separating the `mon` variable into 3 new variables: `year`, `month`, and `day`. Then, the month numbers are replaced with month names and a `president` variable is created, which takes values `prez_gop` and `prez_dem`. After that, `prez_dem`, `prez_gop`, and `day` are removed from the dataset and `year` is converted to an numeric variable using `as.numeric()`:
+```{r problem 3 - pols month read and manipulate data}
 pols_month_df = 
   read_csv("data/fivethirtyeight_datasets/pols-month.csv") %>%
   janitor::clean_names() %>%
@@ -220,8 +222,10 @@ pols_month_df =
                           prez_gop != 1 ~ "dem")) %>%
   select(-prez_gop, -prez_dem, -day) %>%
   mutate(year = as.numeric(year))
+```
 
-
+Below, the data from `fivethirtyeight_datasets/snp.csv` is imported and cleaned. The process begins with cleaning variable names using `clean_names()` and separating the `date` variable into 3 new variables:`month`,`day` and `year`. Then, the month numbers are replaced with month names and "20" is added to the front of the values of `year`, turning "11" into "2011", for example. After that, the dataset is arranged according to year and month, and organized so that year and month are the leading columns. `day` is dropped for consistency across datasets and `year` is converted to an numeric variable using `as.numeric()`:
+```{r problem 3 - snp read and manipulate data}
 snp_df = 
   read_csv("data/fivethirtyeight_datasets/snp.csv") %>%
   janitor::clean_names() %>%
@@ -233,8 +237,10 @@ snp_df =
   relocate(year, month) %>%
   select(-day) %>% # NEED TO DROP DAY?
   mutate(year = as.numeric(year))
+```
 
-
+Below, the data from `fivethirtyeight_datasets/unemployment.csv` is imported and cleaned. The process begins with cleaning variable names using `clean_names()` and switching the dataset from “wide” to “long” format using `pivot_longer()`. All of the specific month column names (jan - dec) are combined into a single `month` variable and the values that the previous columns held are stored in a new `unemployment` variable. Then, the month name abbreviations are replaced with the full month names, turning "jan" into "January" for example, for consistency accross datasets:
+```{r problem 3 - unemployment read and manipulate data}
 unemployment_df = 
   read_csv("data/fivethirtyeight_datasets/unemployment.csv") %>%
   janitor::clean_names() %>%
@@ -245,6 +251,7 @@ unemployment_df =
     month = recode(month, "jan" = 'January', "feb" = 'February', "mar" = 'March', "apr" = 'April', "may" = 'May', "jun" = 'June', "jul" = 'July', "aug" = 'August', "sep" = 'September', "oct" = 'October', "nov" = 'November', "dec" = 'December'))
 ```
 
+Below, the three datasets are merged into a single dataframe. `merged_df`. `snp_df` is merged into `pols_month_df`, and `unemployment_df` is merged into the result:
 ```{r problem 3 - merge datsets}
 merged_df = 
   left_join(pols_month_df, snp_df) %>% # CORRCT JOIN?
@@ -254,7 +261,6 @@ merged_df
 ```
 
 ## Dataset Descriptions: 
-The pols month dataset contained the variables: year, month, gov_gop, sen_gop, rep_gop, gov_dem, sen_dem, rep_dem, and president. The snp dataset contained the variables: year, month, and close. The unemployment dataset contained the variables: year, month, and unemployment.
+The pols month dataset contains the variables: `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`, `rep_dem`, and `president`. The snp dataset contains the variables: `year`, `month`, and `close`. The unemployment dataset contains the variables: `year`, `month`, and `unemployment`.
 
-The resulting merged dataset contains `r nrow(merged_df)` rows/observations and `r ncol(merged_df)` columns/variables. The range of years in the dataset is: 
-`r range(merged_df$year, na.rm = FALSE)`. It contains the variables: year, month, gov_gop, sen_gop, rep_gop, gov_dem, sen_dem, rep_dem, president, close, and unemployment.
+Using inline R, the resulting merged dataset contains `r nrow(merged_df)` rows/observations and `r ncol(merged_df)` columns/variables. The range of years in the dataset is: `r range(merged_df$year, na.rm = FALSE)`. It contains the variables: `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`, `rep_dem`, `president`, `close`, and `unemployment`.
