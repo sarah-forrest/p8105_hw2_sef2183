@@ -168,7 +168,7 @@ professortrashwheel_df =
 ```
 
 ```{r problem 2 - combine trash wheel datasets}
-trashwheel_df = full_join(mrtrashwheel_df, professortrashwheel_df) # CORRECT TYPE OF JOIN?
+trashwheel_df = full_join(mrtrashwheel_df, professortrashwheel_df)
 
 trashwheel_df
 ```
@@ -235,7 +235,7 @@ snp_df =
   mutate(year = paste0("20", year)) %>%
   arrange(year, month) %>%
   relocate(year, month) %>%
-  select(-day) %>% # NEED TO DROP DAY?
+  select(-day) %>%
   mutate(year = as.numeric(year))
 ```
 
@@ -251,11 +251,11 @@ unemployment_df =
     month = recode(month, "jan" = 'January', "feb" = 'February', "mar" = 'March', "apr" = 'April', "may" = 'May', "jun" = 'June', "jul" = 'July', "aug" = 'August', "sep" = 'September', "oct" = 'October', "nov" = 'November', "dec" = 'December'))
 ```
 
-Below, the three datasets are merged into a single dataframe. `merged_df`. `snp_df` is merged into `pols_month_df`, and `unemployment_df` is merged into the result:
+Below, the three datasets are merged into a single dataframe. `merged_df`. `snp_df` is merged into `pols_month_df`, and `unemployment_df` is merged into the result using `left_join()`:
 ```{r problem 3 - merge datsets}
 merged_df = 
-  left_join(pols_month_df, snp_df) %>% # CORRCT JOIN?
-  left_join(., unemployment_df) # CORRCT JOIN?
+  left_join(pols_month_df, snp_df) %>%
+  left_join(., unemployment_df)
 
 merged_df
 ```
