@@ -246,7 +246,7 @@ unemployment_df =
   janitor::clean_names() %>%
   pivot_longer(jan:dec,
     names_to = "month", 
-    values_to = "unemployment") %>% # IS UNEMPLOYMENT THE RIGHT NAME?
+    values_to = "unemployment") %>%
   mutate(
     month = recode(month, "jan" = 'January', "feb" = 'February', "mar" = 'March', "apr" = 'April', "may" = 'May', "jun" = 'June', "jul" = 'July', "aug" = 'August', "sep" = 'September', "oct" = 'October', "nov" = 'November', "dec" = 'December'))
 ```
