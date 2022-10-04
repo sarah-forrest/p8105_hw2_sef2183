@@ -142,28 +142,26 @@ Answer: 17 of the stations that serve the A train are ADA compliant.
 
 # Problem 2
 
-Below, the Mr. Trash Wheel data from `Trash-Wheel-Collection-Totals-7-2020-2.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N534 (omitting the figure at the top of the sheet). Then, variable names are cleaned using `clean_names()` and summary rows that do not include dumpster-specific data are dropped from the dataset. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps. As part of the data import, `sports_balls` is also rounded to the nearest integer and converted to an integer variable using `as.integer()`:
+Below, the Mr. Trash Wheel data from `Trash Wheel Collection Data.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N549 (omitting the figure at the top of the sheet and the summary row at the bottom). Then, variable names are cleaned using `clean_names()`.A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps. As part of the data import, `sports_balls` is also rounded to the nearest integer and converted to an integer variable using `as.integer()`. Finally, `year` is converted to a numeric variable so that it is the same type as `year` in the Professor Trash Wheel dataset and the two can be successfully merged in future steps:
 ```{r problem 2 - read and manipulate mr trash wheel data}
 mrtrashwheel_df =
-  read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N534") %>%
+  read_excel("data/Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N549") %>%
   janitor::clean_names() %>%
-  drop_na(dumpster) %>%
   mutate(dataset = "mr") %>%
-  mutate(sports_balls = round(sports_balls, digits = 0)) %>%
-  mutate(sports_balls = as.integer(sports_balls))
+  mutate(sports_balls = as.integer(sports_balls)) %>%
+  mutate(year = as.numeric(year))
 ```
 
-The following code is written to ensure that `sports_balls` was successsfully converted to an integer variable using `as.integer()`:
+The following code is written to ensure that `sports_balls` was successfully converted to an integer variable using `as.integer()`:
 ```{r problem 2 - check class of variable}
 class(mrtrashwheel_df$sports_balls)
 ```
 
-Below, the Professor Trash Wheel data from `Trash-Wheel-Collection-Totals-7-2020-2.xlsx` is imported and cleaned. The process begins with data import from cells A2 to N116 (omitting the figure at the top of the sheet). Then, variable names are cleaned using `clean_names()` and summary rows that do not include dumpster-specific data are dropped from the dataset. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps: 
+Below, the Professor Trash Wheel data from `Trash Wheel Collection Data.xlsx` is imported and cleaned. The process begins with data import from cells A2 to M96 (omitting the figure at the top of the sheet and the summary row at the bottom). Then, variable names are cleaned using `clean_names()`. A `dataset` variable was added to keep track of which Trash Wheel is which when the datasets are merged in future steps: 
 ```{r problem 2 - read and manipulate professor trash wheel data}
 professortrashwheel_df =
-  read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", range = "A2:N116") %>%
+  read_excel("data/Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", range = "A2:M96") %>%
   janitor::clean_names() %>%
-  drop_na(dumpster) %>%
   mutate(dataset = "prof")
 ```
 
@@ -176,7 +174,7 @@ trashwheel_df
 ## Dataset Description: 
 * The number of observations in the resulting dataset is `r nrow(trashwheel_df)`.
 
-* Examples of key variables in the dataset include: `dumpster`, `month`, `year`, `date`, `Weight (tons)`, `weight_tons`, `volume_cubic yards`, `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`, `grocery_bags`, `chip_bags`, `sports_balls`, and `homes_powered`. 
+* Examples of key variables in the dataset include: `dumpster`, `month`, `year`, `date`, `weight_tons`, `volume_cubic_yards`, `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`, `grocery_bags`, `chip_bags`, `sports_balls`, `homes_powered`, and `dataset`, which indicates which Trash Wheel (Mr. or Professor) the data is from. 
 
 * Using inline R to take the sum of `weight_tons` from `professortrashwheel_df`, the total weight of trash collected by Professor Trash Wheel is `r sum(professortrashwheel_df$weight_tons)` tons. This can be double checked another way by running the following code, which filters only the trash collected by Professor Trash Wheel from the combined dataset, and then calculates the sum of `weight_tons`:
 ```{r probelm 2 - professor trash wheel sum weight tons}
@@ -185,8 +183,7 @@ trashwheel_df %>%
   pull(weight_tons) %>% 
   sum
 ```
-Answer: the total weight of trash collected by Professor Trash Wheel is 135.5 tons.
-
+Answer: the total weight of trash collected by Professor Trash Wheel is 190.12 tons.
 
 * To calculate the total number of sports balls collected by Mr. Trash Wheel in 2020, the following code filters only the trash collected by Mr. Trash Wheel from the combined dataset in 2020, and then calculates the sum of `sports_balls`:
 ```{r problem 2 - 2020 mr trach wheel sum sports balls}
